@@ -24,31 +24,27 @@ public class DevKeyAction extends EditorAction {
     private static class Handler extends EditorActionHandler {
         @Override
         protected void doExecute(@NotNull Editor editor, @Nullable Caret caret, DataContext dataContext) {
-            String command = editor.getSelectionModel().getSelectedText();
-            System.out.println(command);
-            if (command != null) {
-                if (command.startsWith("cp")) {
-                    String[] lines = command.substring(2).split("\\+");
-                    if (lines.length == 2) {
-                        int start = Integer.parseInt(lines[0]);
-                        int end = Integer.parseInt(lines[1]);
-                        Document document = editor.getDocument();
-                        int selectionStart = editor.getSelectionModel().getSelectionStart();
-                        int selectionEnd = editor.getSelectionModel().getSelectionEnd();
-                        int lineStartOffset = document.getLineStartOffset(start - 1);
-                        int lineEndOffset = document.getLineEndOffset(end - 1);
-                        TextRange textRange = TextRange.create(lineStartOffset, lineEndOffset);
-                        WriteCommandAction.runWriteCommandAction(editor.getProject(), () -> document.replaceString(selectionStart, selectionEnd, document.getText(textRange)));
-                    } else if (lines.length == 1) {
-                        int start = Integer.parseInt(lines[0]);
-                        Document document = editor.getDocument();
-                        int selectionStart = editor.getSelectionModel().getSelectionStart();
-                        int selectionEnd = editor.getSelectionModel().getSelectionEnd();
-                        int lineStartOffset = document.getLineStartOffset(start - 1);
-                        int lineEndOffset = document.getLineEndOffset(start - 1);
-                        TextRange textRange = TextRange.create(lineStartOffset, lineEndOffset);
-                        WriteCommandAction.runWriteCommandAction(editor.getProject(), () -> document.replaceString(selectionStart, selectionEnd, document.getText(textRange)));
-                    }
+            Document document = editor.getDocument();
+            int lineNumber = document.getLineNumber(editor.getSelectionModel().getSelectionStart());
+            int selectionStart = document.getLineStartOffset(lineNumber);
+            int selectionEnd = document.getLineEndOffset(lineNumber);
+            String command = document.getText(TextRange.create(selectionStart, selectionEnd));
+
+            if (command.startsWith("cp")) {
+                String[] lines = command.substring(2).split("\\+");
+                if (lines.length == 2) {
+                    int start = Integer.parseInt(lines[0]);
+                    int end = Integer.parseInt(lines[1]);
+                    int lineStartOffset = document.getLineStartOffset(start - 1);
+                    int lineEndOffset = document.getLineEndOffset(end - 1);
+                    TextRange textRange = TextRange.create(lineStartOffset, lineEndOffset);
+                    WriteCommandAction.runWriteCommandAction(editor.getProject(), () -> document.replaceString(selectionStart, selectionEnd, document.getText(textRange)));
+                } else if (lines.length == 1) {
+                    int start = Integer.parseInt(lines[0]);
+                    int lineStartOffset = document.getLineStartOffset(start - 1);
+                    int lineEndOffset = document.getLineEndOffset(start - 1);
+                    TextRange textRange = TextRange.create(lineStartOffset, lineEndOffset);
+                    WriteCommandAction.runWriteCommandAction(editor.getProject(), () -> document.replaceString(selectionStart, selectionEnd, document.getText(textRange)));
                 }
             }
         }
